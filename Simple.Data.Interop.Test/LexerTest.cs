@@ -54,7 +54,7 @@ namespace Simple.Data.Interop.Test
                 Assert.Equal(TokenType.OpenParen, e.Current.Type);
 
                 Assert.True(e.MoveNext());
-                Assert.Equal(TokenType.NumericConstant, e.Current.Type);
+                Assert.Equal(TokenType.Number, e.Current.Type);
                 Assert.Equal("1", e.Current.Value);
 
                 Assert.True(e.MoveNext());
@@ -91,7 +91,7 @@ namespace Simple.Data.Interop.Test
                 Assert.Equal(TokenType.OpenParen, e.Current.Type);
 
                 Assert.True(e.MoveNext());
-                Assert.Equal(TokenType.StringConstant, e.Current.Type);
+                Assert.Equal(TokenType.String, e.Current.Type);
                 Assert.Equal("Bob", e.Current.Value);
 
                 Assert.True(e.MoveNext());
@@ -135,7 +135,7 @@ namespace Simple.Data.Interop.Test
                 Assert.Equal(TokenType.Colon, e.Current.Type);
 
                 Assert.True(e.MoveNext());
-                Assert.Equal(TokenType.StringConstant, e.Current.Type);
+                Assert.Equal(TokenType.String, e.Current.Type);
                 Assert.Equal("Bob", e.Current.Value);
 
                 Assert.True(e.MoveNext());

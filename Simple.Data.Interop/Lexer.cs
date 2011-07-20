@@ -53,11 +53,11 @@ namespace Simple.Data.Interop
                 {
                     throw new InvalidOperationException();
                 }
-                return new Token(TokenType.StringConstant, _strings[str]);
+                return new Token(TokenType.String, _strings[str]);
             }
             if (char.IsDigit(str[0]))
             {
-                return new Token(TokenType.NumericConstant, str);
+                return new Token(TokenType.Number, str);
             }
             return new Token(TokenType.Identifier, str);
         }

@@ -7,13 +7,13 @@ namespace Simple.Data.Interop
 {
     public enum TokenType
     {
-        NumericConstant,
+        Number,
         Identifier,
         OpenParen,
         CloseParen,
         Dot,
         Comma,
-        StringConstant,
+        String,
         LessThanSign,
         GreaterThanSign,
         EqualSign,
