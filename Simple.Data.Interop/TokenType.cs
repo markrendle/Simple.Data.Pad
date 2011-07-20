@@ -18,6 +18,13 @@ namespace Simple.Data.Interop
         GreaterThanSign,
         EqualSign,
         BangSign,
-        Colon
+        Colon,
+        PlusSign,
+        MinusSign,
+        Asterisk,
+        ForwardSlash,
+        Percent,
+        Ampersand,
+        Pipe
     }
 }

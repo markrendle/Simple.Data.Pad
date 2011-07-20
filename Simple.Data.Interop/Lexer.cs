@@ -23,11 +23,21 @@ namespace Simple.Data.Interop
         public IEnumerable<Token> GetTokens()
         {
             var withoutStrings = StringExtractor.Replace(_source, HoldString);
-            var withoutWhitespace = WhitespaceEliminator.Replace(withoutStrings, "");
+            var singleSpaced = WhitespaceEliminator.Replace(withoutStrings, " ");
 
             var buffer = new StringBuilder();
-            foreach (var ch in withoutWhitespace)
+            foreach (var ch in singleSpaced)
             {
+                if (ch == ' ')
+                {
+                    if (buffer.Length > 0) yield return StringToToken(buffer);
+                    continue;
+                }
+                if (ch == '.' && buffer.Length > 0 && char.IsDigit(buffer[0]))
+                {
+                    buffer.Append(ch);
+                    continue;
+                }
                 Token token;
                 if (Singles.TryGetToken(ch, out token))
                 {

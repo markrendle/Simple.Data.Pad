@@ -65,6 +65,90 @@ namespace Simple.Data.Interop.Test
         }
 
         [Fact]
+        public void SimpleFindByWithDecimalConstantIsTokenizedCorrectly()
+        {
+            using (var e = Lex("db.Users.FindById(1.0)"))
+            {
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Identifier, e.Current.Type);
+                Assert.Equal("db", e.Current.Value);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Dot, e.Current.Type);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Identifier, e.Current.Type);
+                Assert.Equal("Users", e.Current.Value);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Dot, e.Current.Type);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Identifier, e.Current.Type);
+                Assert.Equal("FindById", e.Current.Value);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.OpenParen, e.Current.Type);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Number, e.Current.Type);
+                Assert.Equal("1.0", e.Current.Value);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.CloseParen, e.Current.Type);
+
+                Assert.False(e.MoveNext());
+            }
+        }
+
+        [Fact]
+        public void SimpleFindByWithDateTimeConstantIsTokenizedCorrectly()
+        {
+            using (var e = Lex("db.Users.FindByDate(new DateTime())"))
+            {
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Identifier, e.Current.Type);
+                Assert.Equal("db", e.Current.Value);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Dot, e.Current.Type);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Identifier, e.Current.Type);
+                Assert.Equal("Users", e.Current.Value);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Dot, e.Current.Type);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Identifier, e.Current.Type);
+                Assert.Equal("FindByDate", e.Current.Value);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.OpenParen, e.Current.Type);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Identifier, e.Current.Type);
+                Assert.Equal("new", e.Current.Value);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.Identifier, e.Current.Type);
+                Assert.Equal("DateTime", e.Current.Value);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.OpenParen, e.Current.Type);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.CloseParen, e.Current.Type);
+
+                Assert.True(e.MoveNext());
+                Assert.Equal(TokenType.CloseParen, e.Current.Type);
+
+                Assert.False(e.MoveNext());
+            }
+        }
+
+        [Fact]
         public void SimpleFindByWithStringConstantIsTokenizedCorrectly()
         {
             using (var e = Lex(@"db.Users.FindByName(""Bob"")"))
