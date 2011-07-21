@@ -9,44 +9,73 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </Window.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0">
-            <pad:DatabaseSelector DataContext="{Binding DatabaseSelectorViewModel}" Height="32"/>
-        <StackPanel Orientation="Horizontal">
-            <Button Command="{Binding Run}" Margin="2" Padding="8 2">Run</Button>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0">
+                <pad:DatabaseSelector DataContext="{Binding DatabaseSelectorViewModel}" Height="32"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Command="{Binding Run}" Margin="2" Padding="8 2">Run</Button>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="150"/>
-            </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0"
-                     FontFamily="Consolas,Lucida Console,Courier New"
-                     AcceptsReturn="True"
-                     AcceptsTab="True"
-                     VerticalAlignment="Stretch"
-                     Text="{Binding QueryText, UpdateSourceTrigger=PropertyChanged}"
-                     SelectionChanged="TextBoxSelectionChanged"/>
-            <ListBox Grid.Column="1"
-                     ItemsSource="{Binding AutoCompleteOptions}"/>
-        </Grid>
-        <GridSplitter Grid.Row="2" Height="4"/>
-        <DataGrid Grid.Row="3"
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0"
+                         x:Name="QueryTextBox"
+                         FontFamily="Consolas,Lucida Console,Courier New"
+                         AcceptsReturn="True"
+                         AcceptsTab="True"
+                         VerticalAlignment="Stretch"
+                         Text="{Binding QueryText, UpdateSourceTrigger=PropertyChanged}"
+                         SelectionChanged="TextBoxSelectionChanged"
+                         TextChanged="QueryTextBoxTextChanged"/>
+            </Grid>
+            <GridSplitter Grid.Row="2" Height="4"/>
+            <DataGrid Grid.Row="3"
                   ItemsSource="{Binding Data}"
                   AutoGenerateColumns="True"
                   HorizontalGridLinesBrush="LightGray"
                   VerticalGridLinesBrush="LightGray"
                   Visibility="{Binding DataAvailable, Converter={StaticResource ResourceKey=BoolToVis}}"/>
-        <TextBlock Grid.Row="3"
+            <TextBlock Grid.Row="3"
                    FontFamily="Consolas,Lucida Console,Courier New"
                    Text="{Binding ResultText}"/>
+        <Popup x:Name="AutoCompletePopup" PlacementTarget="{Binding ElementName=QueryTextBox}" Placement="Relative" AllowsTransparency="True">
+            <Border BorderThickness="0.1" Margin="0 0 8 8">
+                <ListBox x:Name="AutoCompleteListBox"
+                         ItemsSource="{Binding AutoCompleteOptions}"
+                         MouseUp="ListBoxMouseUp"
+                         SelectionChanged="AutoCompleteListBox_OnSelectionChanged">
+                    <ListBox.Resources>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border Name="Border" Padding="2" SnapsToDevicePixels="true">
+                                            <ContentPresenter />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="true">
+                                                <Setter TargetName="Border" Property="Background"
+                                            Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.Resources>
+
+                </ListBox>
+            </Border>
+        </Popup>
     </Grid>
 </Window>

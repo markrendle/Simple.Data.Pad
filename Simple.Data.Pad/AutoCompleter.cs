@@ -1,6 +1,7 @@
 ﻿namespace Simple.Data.Pad
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -12,8 +13,9 @@
     public class AutoCompleter
     {
         private static readonly Regex NonAlphaNumeric = new Regex("[^0-9a-zA-Z]+");
-        private static readonly IEnumerable<string> Empty = Enumerable.Empty<string>();
+        private static readonly string[] Empty = new string[0];
         private readonly ISchemaProvider _schemaProvider;
+        private readonly ConcurrentDictionary<string,string[]> _cache = new ConcurrentDictionary<string, string[]>();
 
         public AutoCompleter(Database database)
         {
@@ -29,14 +31,25 @@
 
         public IEnumerable<string> GetOptions(string currentText)
         {
-            if (_schemaProvider == null) return Empty;
+            if (_schemaProvider == null || string.IsNullOrWhiteSpace(currentText) || (!currentText.Contains("."))) return Empty;
 
+            var array = _cache.GetOrAdd(currentText, GetOptionsImpl);
+            if (array.Length == 1 && currentText.Substring(currentText.LastIndexOf('.') + 1).Equals(array[0], StringComparison.CurrentCultureIgnoreCase))
+                return Empty;
+            return array;
+        }
+
+        private string[] GetOptionsImpl(string currentText)
+        {
             var tokens = new Lexer(currentText).GetTokens().ToArray();
             if (tokens.Length < 2) return Empty;
             var db = tokens.First().Value;
             var token = tokens.Reverse().GetEnumerator();
 
             token.MoveNext();
+
+            if (token.Current.Type != TokenType.Dot && token.Current.Type != TokenType.Identifier) return Empty;
+
             string partial = string.Empty;
             if (token.Current.Type == TokenType.Identifier)
             {
@@ -54,6 +67,13 @@
                 return Empty;
             }
 
+            var array = GetOptionsImpl(partial, token, db).ToArray();
+            if (array.Length == 1 && array[0].Equals(partial, StringComparison.CurrentCultureIgnoreCase)) return Empty;
+            return array;
+        }
+
+        private IEnumerable<string> GetOptionsImpl(string partial, IEnumerator<Token> token, object db)
+        {
             if (token.Current.Value == db)
             {
                 return DatabaseOptions()

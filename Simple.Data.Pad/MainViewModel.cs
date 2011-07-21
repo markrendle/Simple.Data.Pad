@@ -9,6 +9,7 @@ namespace Simple.Data.Pad
     using System.Data;
     using System.Diagnostics;
     using System.Reflection;
+    using System.Timers;
     using System.Windows.Input;
     using System.Windows.Media;
     using Interop;
@@ -16,13 +17,35 @@ namespace Simple.Data.Pad
     public class MainViewModel : ViewModelBase
     {
         private readonly ICommand _runCommand;
+        private readonly Timer _timer;
         private AutoCompleter _autoCompleter = new AutoCompleter(null);
 
         public MainViewModel()
         {
             _databaseSelectorViewModel = new DatabaseSelectorViewModel();
             LoadSettings();
+            _databaseSelectorViewModel.PropertyChanged += DatabaseSelectorViewModelPropertyChanged;
             _runCommand = new ActionCommand(RunImpl);
+            _timer = new Timer(500) { AutoReset = false };
+            _timer.Elapsed += TimerElapsed;
+        }
+
+        void TimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                _autoCompleter = new AutoCompleter(CreateDatabase());
+            }
+            catch (Exception)
+            {
+                Trace.WriteLine("Failed to open database.");
+            }
+        }
+
+        void DatabaseSelectorViewModelPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            _timer.Stop();
+            _timer.Start();
         }
 
         private void LoadSettings()
@@ -141,7 +164,7 @@ namespace Simple.Data.Pad
 
         public IEnumerable<string> AutoCompleteOptions
         {
-            get { return _autoCompleter.GetOptions(QueryText); }
+            get { return _autoCompleter.GetOptions(QueryText.Substring(0, CursorPosition + 1)); }
         }
 
         void RunImpl()
