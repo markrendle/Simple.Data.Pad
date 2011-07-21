@@ -105,6 +105,12 @@
     </None>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Simple.Data.Interop\Simple.Data.Interop.csproj">
+      <Project>{1BBCF939-00FE-4FF4-BF63-C460AC7C3C05}</Project>
+      <Name>Simple.Data.Interop</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

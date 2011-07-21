@@ -22,6 +22,7 @@ namespace Simple.Data.Pad
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainViewModel();
         }
     }
 }
