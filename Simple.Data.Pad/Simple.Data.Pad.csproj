@@ -70,6 +70,7 @@
       <DependentUpon>DatabaseSelector.xaml</DependentUpon>
     </Compile>
     <Compile Include="DatabaseSelectorViewModel.cs" />
+    <Compile Include="ActionTraceListener.cs" />
     <Compile Include="ViewModelBase.cs" />
     <Page Include="DatabaseSelector.xaml">
       <SubType>Designer</SubType>

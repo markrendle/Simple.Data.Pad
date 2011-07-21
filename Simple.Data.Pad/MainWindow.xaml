@@ -39,18 +39,30 @@
                          TextChanged="QueryTextBoxTextChanged"/>
             </Grid>
             <GridSplitter Grid.Row="2" Height="4"/>
-            <DataGrid Grid.Row="3"
-                  ItemsSource="{Binding Data}"
-                  AutoGenerateColumns="True"
-                  HorizontalGridLinesBrush="LightGray"
-                  VerticalGridLinesBrush="LightGray"
-                  Visibility="{Binding DataAvailable, Converter={StaticResource ResourceKey=BoolToVis}}"/>
-            <TextBlock Grid.Row="3"
-                   FontFamily="Consolas,Lucida Console,Courier New"
-                   Text="{Binding ResultText}"/>
+        <TabControl Grid.Row="3"
+                    TabStripPlacement="Bottom">
+            <TabItem Header="Results">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding Data}"
+                              AutoGenerateColumns="True"
+                              HorizontalGridLinesBrush="LightGray"
+                              VerticalGridLinesBrush="LightGray"
+                              Visibility="{Binding DataAvailable, Converter={StaticResource ResourceKey=BoolToVis}}"/>
+                    <TextBlock Grid.Row="3"
+                               FontFamily="Consolas,Lucida Console,Courier New"
+                               Text="{Binding ResultText}"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Trace">
+                <TextBlock Text="{Binding TraceOutput}"/>
+            </TabItem>
+        </TabControl>
         <Popup x:Name="AutoCompletePopup" PlacementTarget="{Binding ElementName=QueryTextBox}" Placement="Relative" AllowsTransparency="True">
             <Border BorderThickness="0.1" Margin="0 0 8 8">
                 <ListBox x:Name="AutoCompleteListBox"
+                         MinWidth="160"
+                         MinHeight="40"
+                         FontFamily="Consolas,Lucida Console,Courier New"
                          ItemsSource="{Binding AutoCompleteOptions}"
                          MouseUp="ListBoxMouseUp"
                          SelectionChanged="AutoCompleteListBox_OnSelectionChanged">

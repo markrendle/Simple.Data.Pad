@@ -28,6 +28,7 @@ namespace Simple.Data.Pad
             _runCommand = new ActionCommand(RunImpl);
             _timer = new Timer(500) { AutoReset = false };
             _timer.Elapsed += TimerElapsed;
+            Trace.Listeners.Add(new ActionTraceListener(s => TraceOutput += s));
         }
 
         void TimerElapsed(object sender, ElapsedEventArgs e)
@@ -122,6 +123,14 @@ namespace Simple.Data.Pad
             }
         }
 
+        public string TraceOutput
+        {
+            get { return _traceOutput; }
+            set
+            {
+                Set(ref _traceOutput, value, "TraceOutput");
+            }
+        }
         private string _resultText;
         public string ResultText
         {
@@ -153,6 +162,8 @@ namespace Simple.Data.Pad
         }
 
         private object _data;
+        private string _traceOutput;
+
         public object Data
         {
             get { return _data; }
@@ -164,12 +175,19 @@ namespace Simple.Data.Pad
 
         public IEnumerable<string> AutoCompleteOptions
         {
-            get { return _autoCompleter.GetOptions(QueryText.Substring(0, CursorPosition + 1)); }
+            get
+            {
+                return QueryText.Length > CursorPosition
+                           ? _autoCompleter.GetOptions(QueryText.Substring(0, CursorPosition + 1))
+                           : Enumerable.Empty<string>();
+            }
         }
 
         void RunImpl()
         {
             SaveSettings();
+            TraceOutput = string.Empty;
+            
             var database = CreateDatabase();
             var executor = new QueryExecutor(_queryText);
             object result;
@@ -206,6 +224,8 @@ namespace Simple.Data.Pad
 
         private static object FormatResult(object result)
         {
+            if (result == null) return "No results found.";
+
             if (result is SimpleRecord)
             {
                 return FormatDictionary(result as IDictionary<string, object>);

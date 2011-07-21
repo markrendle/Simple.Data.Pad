@@ -98,6 +98,7 @@
             {
                 yield return column;
                 yield return "FindBy" + column;
+                yield return "FindAllBy" + column;
             }
         }
 
