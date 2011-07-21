@@ -5,6 +5,10 @@ using System.Text;
 
 namespace Simple.Data.Pad
 {
+    using System.Collections;
+    using System.Data;
+    using System.Diagnostics;
+    using System.Reflection;
     using System.Windows.Input;
     using System.Windows.Media;
     using Interop;
@@ -12,10 +16,59 @@ namespace Simple.Data.Pad
     public class MainViewModel : ViewModelBase
     {
         private readonly ICommand _runCommand;
+        private AutoCompleter _autoCompleter = new AutoCompleter(null);
 
         public MainViewModel()
         {
+            _databaseSelectorViewModel = new DatabaseSelectorViewModel();
+            LoadSettings();
             _runCommand = new ActionCommand(RunImpl);
+        }
+
+        private void LoadSettings()
+        {
+            if (Properties.Settings.Default.UpgradeRequired)
+            {
+                Properties.Settings.Default.Upgrade();
+                Properties.Settings.Default.Save();
+            }
+            QueryText = Properties.Settings.Default.LastQuery;
+            _databaseSelectorViewModel.SelectedMethod = _databaseSelectorViewModel.Methods
+                .FirstOrDefault(
+                    m =>
+                    m.Name.Equals(Properties.Settings.Default.OpenMethod) &&
+                    m.GetParameters().Length == Properties.Settings.Default.OpenMethodParameterCount);
+            _databaseSelectorViewModel.Parameter1 = Properties.Settings.Default.OpenMethodParameter1;
+            _databaseSelectorViewModel.Parameter2 = Properties.Settings.Default.OpenMethodParameter2;
+
+            try
+            {
+                _autoCompleter = new AutoCompleter(CreateDatabase());
+            }
+            catch (Exception)
+            {
+                Trace.WriteLine("Failed to open database.");
+            }
+        }
+
+        private void SaveSettings()
+        {
+            Properties.Settings.Default.LastQuery = QueryText;
+            Properties.Settings.Default.OpenMethod = _databaseSelectorViewModel.SelectedMethod.Name;
+            Properties.Settings.Default.OpenMethodParameterCount =
+                _databaseSelectorViewModel.SelectedMethod.GetParameters().Length;
+            Properties.Settings.Default.OpenMethodParameter1 = _databaseSelectorViewModel.Parameter1;
+            Properties.Settings.Default.OpenMethodParameter2 = _databaseSelectorViewModel.Parameter2;
+            Properties.Settings.Default.Save();
+        }
+
+        public string WindowTitle
+        {
+            get
+            {
+                return string.Format("Simple.Data.Pad {0}",
+                                     Assembly.GetAssembly(typeof(Database)).GetName().Version.ToString(3));
+            }
         }
 
         private string _queryText;
@@ -25,12 +78,24 @@ namespace Simple.Data.Pad
             get { return _runCommand; }
         }
 
+        private readonly DatabaseSelectorViewModel _databaseSelectorViewModel;
+
+        public DatabaseSelectorViewModel DatabaseSelectorViewModel
+        {
+            get { return _databaseSelectorViewModel; }
+        }
+
+        public int CursorPosition { get; set; }
+
         public string QueryText
         {
             get { return _queryText; }
             set
             {
-                Set(ref _queryText, value, "QueryText");
+                if (Set(ref _queryText, value, "QueryText"))
+                {
+                    RaisePropertyChanged("AutoCompleteOptions");
+                }
             }
         }
 
@@ -54,59 +119,117 @@ namespace Simple.Data.Pad
             }
         }
 
-        void RunImpl()
+        private bool _dataAvailable;
+        public bool DataAvailable
         {
-            var database = Database.OpenConnection("data source=.;initial catalog=SimpleTest;integrated security=true");
-            var executor = new QueryExecutor(_queryText);
-            object result;
-            ResultColor = executor.CompileAndRun(database, out result) ? Colors.Black : Colors.Red;
-            ResultText = FormatResult(result);
+            get { return _dataAvailable; }
+            set
+            {
+                Set(ref _dataAvailable, value, "DataAvailable");
+            }
         }
 
-        private static string FormatResult(object result)
+        private object _data;
+        public object Data
+        {
+            get { return _data; }
+            set
+            {
+                Set(ref _data, value, "Data");
+            }
+        }
+
+        public IEnumerable<string> AutoCompleteOptions
+        {
+            get { return _autoCompleter.GetOptions(QueryText); }
+        }
+
+        void RunImpl()
+        {
+            SaveSettings();
+            var database = CreateDatabase();
+            var executor = new QueryExecutor(_queryText);
+            object result;
+            DataAvailable = executor.CompileAndRun(database, out result);
+            ResultColor = DataAvailable ? Colors.Black : Colors.Red;
+            Data = FormatResult(result);
+        }
+
+        private Database CreateDatabase()
+        {
+            var method = DatabaseSelectorViewModel.SelectedMethod;
+            var parameters = BuildParameters(method);
+            var database = method.Invoke(Database.Opener, parameters) as Database;
+            return database;
+        }
+
+        private string[] BuildParameters(MethodInfo method)
+        {
+            string[] parameters;
+            if (method.GetParameters().Length == 1)
+            {
+                parameters = new[] { DatabaseSelectorViewModel.Parameter1 };
+            }
+            else if (method.GetParameters().Length == 2)
+            {
+                parameters = new[] { DatabaseSelectorViewModel.Parameter1, DatabaseSelectorViewModel.Parameter2 };
+            }
+            else
+            {
+                parameters = new string[0];
+            }
+            return parameters;
+        }
+
+        private static object FormatResult(object result)
         {
             if (result is SimpleRecord)
             {
                 return FormatDictionary(result as IDictionary<string, object>);
             }
 
+            if (result is SimpleQuery)
+            {
+                return FormatQuery(result as SimpleQuery);
+            }
+
             return result.ToString();
         }
 
-        private static string FormatDictionary(IDictionary<string, object> dictionary)
+        private static object FormatQuery(SimpleQuery simpleQuery)
         {
-            return string.Join(Environment.NewLine,
-                               dictionary.Select(kvp => string.Format("{0}: {1}", kvp.Key, kvp.Value)));
-        }
-    }
+            var list = simpleQuery.ToList();
+            if (list.Count == 0) return "No matching records.";
 
-    class ActionCommand : ICommand
-    {
-        private readonly Action _execute;
-        private readonly Func<bool> _canExecute;
+            var firstRow = list.FirstOrDefault() as IDictionary<string, object>;
+            if (firstRow == null) throw new InvalidOperationException();
 
-        public ActionCommand(Action execute) : this(execute, () => true)
-        {
-        }
+            var table = new DataTable();
+            foreach (var kvp in firstRow)
+            {
+                table.Columns.Add(kvp.Key);
+            }
 
-        public ActionCommand(Action execute, Func<bool> canExecute)
-        {
-            if (execute == null) throw new ArgumentNullException("execute");
-            if (canExecute == null) throw new ArgumentNullException("canExecute");
-            _execute = execute;
-            _canExecute = canExecute;
+            foreach (var row in list.Cast<IDictionary<string,object>>())
+            {
+                table.Rows.Add(row.Values.ToArray());
+            }
+
+            return table.DefaultView;
         }
 
-        public void Execute(object parameter)
+        private static object FormatDictionary(IEnumerable<KeyValuePair<string, object>> dictionary)
         {
-            _execute();
-        }
+            var table = new DataTable();
+            table.Columns.Add("Property");
+            table.Columns.Add("Value");
 
-        public bool CanExecute(object parameter)
-        {
-            return _canExecute();
-        }
+            foreach (var kvp in dictionary)
+            {
+                table.Rows.Add(kvp.Key, kvp.Value);
+            }
 
-        public event EventHandler CanExecuteChanged;
+            return table.DefaultView;
+        }
     }
 }

@@ -1,10 +1,14 @@
 ﻿<Window x:Class="Simple.Data.Pad.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525"
+        Title="{Binding WindowTitle}" Height="350" Width="525"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pad="clr-namespace:Simple.Data.Pad"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" mc:Ignorable="d">
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" mc:Ignorable="d"
+        KeyUp="MainWindowKeyUp">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -13,17 +17,34 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0"
-                    Orientation="Horizontal">
+        <StackPanel Grid.Row="0">
+            <pad:DatabaseSelector DataContext="{Binding DatabaseSelectorViewModel}" Height="32"/>
+        <StackPanel Orientation="Horizontal">
             <Button Command="{Binding Run}" Margin="2" Padding="8 2">Run</Button>
+            </StackPanel>
         </StackPanel>
-        <TextBox Grid.Row="1"
-                 FontFamily="Consolas,Lucida Console,Courier New"
-                 AcceptsReturn="True"
-                 AcceptsTab="True"
-                 VerticalAlignment="Stretch"
-                 Text="{Binding QueryText, UpdateSourceTrigger=PropertyChanged}"/>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="150"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0"
+                     FontFamily="Consolas,Lucida Console,Courier New"
+                     AcceptsReturn="True"
+                     AcceptsTab="True"
+                     VerticalAlignment="Stretch"
+                     Text="{Binding QueryText, UpdateSourceTrigger=PropertyChanged}"
+                     SelectionChanged="TextBoxSelectionChanged"/>
+            <ListBox Grid.Column="1"
+                     ItemsSource="{Binding AutoCompleteOptions}"/>
+        </Grid>
         <GridSplitter Grid.Row="2" Height="4"/>
+        <DataGrid Grid.Row="3"
+                  ItemsSource="{Binding Data}"
+                  AutoGenerateColumns="True"
+                  HorizontalGridLinesBrush="LightGray"
+                  VerticalGridLinesBrush="LightGray"
+                  Visibility="{Binding DataAvailable, Converter={StaticResource ResourceKey=BoolToVis}}"/>
         <TextBlock Grid.Row="3"
                    FontFamily="Consolas,Lucida Console,Courier New"
                    Text="{Binding ResultText}"/>

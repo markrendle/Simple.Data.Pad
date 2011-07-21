@@ -17,5 +17,10 @@ namespace Simple.Data.Pad
             PropertyChanged.Raise(this, propertyName);
             return true;
         }
+
+        protected void RaisePropertyChanged(string propertyName)
+        {
+            PropertyChanged.Raise(this, propertyName);
+        }
     }
 }

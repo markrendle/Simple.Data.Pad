@@ -19,10 +19,22 @@ namespace Simple.Data.Pad
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly MainViewModel _viewModel;
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new MainViewModel();
+            DataContext = _viewModel = new MainViewModel();
+        }
+
+        void MainWindowKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.F5) _viewModel.Run.Execute(null);
+        }
+
+        private void TextBoxSelectionChanged(object sender, RoutedEventArgs e)
+        {
+            var textBox = ((TextBox) sender);
+            _viewModel.CursorPosition = textBox.SelectionStart + textBox.SelectionLength;
         }
     }
 }
