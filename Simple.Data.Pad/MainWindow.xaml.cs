@@ -25,6 +25,9 @@ namespace Simple.Data.Pad
         private static readonly string[] NewlineSplitArg = new[] { Environment.NewLine };
         private readonly Typeface _typeface;
         private readonly MainViewModel _viewModel;
+
+        private bool _deferKeyUp;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -37,16 +40,33 @@ namespace Simple.Data.Pad
 
         void AutoCompletePopupClosed(object sender, EventArgs e)
         {
-            PreviewKeyUp -= MainWindowPreviewKeyUp;
+            QueryTextBox.PreviewKeyUp -= MainWindowPreviewKeyUp;
+            QueryTextBox.PreviewTextInput -= QueryTextBoxPreviewTextInput;
         }
 
         void AutoCompletePopupOpened(object sender, EventArgs e)
         {
-            PreviewKeyUp += MainWindowPreviewKeyUp;
+            _deferKeyUp = true;
+            QueryTextBox.PreviewKeyUp += MainWindowPreviewKeyUp;
+            QueryTextBox.PreviewTextInput += QueryTextBoxPreviewTextInput;
+        }
+
+        void QueryTextBoxPreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (e.Text == "." || e.Text == "(")
+            {
+                SelectAutoCompleteText(e.Text);
+                e.Handled = true;
+            }
         }
 
         void MainWindowPreviewKeyUp(object sender, KeyEventArgs e)
         {
+            if (_deferKeyUp)
+            {
+                _deferKeyUp = false;
+                return;
+            }
             if (e.Key == Key.Down)
             {
                 if (AutoCompleteListBox.SelectedIndex + 1 < AutoCompleteListBox.Items.Count)
@@ -95,7 +115,7 @@ namespace Simple.Data.Pad
             AutoCompletePopup.Width = options.Select(s => s.Length*8).Max() + 8;
             AutoCompletePopup.Height = Math.Min((options.Length*16) + 16, 200) + 8;
 
-            var text = _viewModel.QueryText.Substring(0, _viewModel.CursorPosition + 1);
+            var text = _viewModel.QueryTextToCursor;
             var formattedText = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
                                                   _typeface, QueryTextBox.FontSize, Brushes.Black);
             AutoCompletePopup.VerticalOffset = formattedText.Height + 4;
@@ -113,16 +133,14 @@ namespace Simple.Data.Pad
             if (e.Key == Key.F5) _viewModel.Run.Execute(null);
         }
 
-        private void TextBoxSelectionChanged(object sender, RoutedEventArgs e)
+        private void QueryTextBoxSelectionChanged(object sender, RoutedEventArgs e)
         {
-            var textBox = ((TextBox) sender);
-            _viewModel.CursorPosition = textBox.SelectionStart + textBox.SelectionLength;
+            _viewModel.CursorPosition = QueryTextBox.CaretIndex;
         }
 
         private void QueryTextBoxTextChanged(object sender, RoutedEventArgs e)
         {
-            var textBox = ((TextBox)sender);
-            _viewModel.CursorPosition = textBox.SelectionStart + textBox.SelectionLength;
+            _viewModel.CursorPosition = QueryTextBox.CaretIndex;
         }
 
         private void ListBoxMouseUp(object sender, RoutedEventArgs e)
@@ -130,7 +148,7 @@ namespace Simple.Data.Pad
             SelectAutoCompleteText();
         }
 
-        private void SelectAutoCompleteText()
+        private void SelectAutoCompleteText(string andAppend = "")
         {
             var selected = AutoCompleteListBox.SelectedItem;
             while (QueryTextBox.SelectedText.FirstOrDefault() != '.')
@@ -138,10 +156,19 @@ namespace Simple.Data.Pad
                 QueryTextBox.SelectionStart -= 1;
                 QueryTextBox.SelectionLength += 1;
             }
-            QueryTextBox.SelectedText = "." + selected;
+            QueryTextBox.SelectedText = "." + selected + andAppend;
             QueryTextBox.SelectionStart += QueryTextBox.SelectionLength;
             QueryTextBox.SelectionLength = 0;
-            AutoCompletePopup.IsOpen = false;
+            QueryTextBox.CaretIndex = QueryTextBox.SelectionStart;
+            _viewModel.CursorPosition = QueryTextBox.CaretIndex;
+            if (andAppend != ".")
+            {
+                AutoCompletePopup.IsOpen = false;
+            }
+            else
+            {
+                _viewModel.ForceAutoCompleteOptionsUpdate();
+            }
         }
 
         private void AutoCompleteListBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)

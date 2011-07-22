@@ -16,8 +16,9 @@
         private static readonly string[] Empty = new string[0];
         private readonly ISchemaProvider _schemaProvider;
         private readonly ConcurrentDictionary<string,string[]> _cache = new ConcurrentDictionary<string, string[]>();
+        private static readonly ConcurrentDictionary<string, string> PrettifiedCache = new ConcurrentDictionary<string, string>();
 
-        public AutoCompleter(Database database)
+        public AutoCompleter(DataStrategy database)
         {
             if (database != null)
             {
@@ -29,13 +30,22 @@
             }
         }
 
+        public AutoCompleter(ISchemaProvider schemaProvider)
+        {
+            _schemaProvider = schemaProvider;
+        }
+
         public IEnumerable<string> GetOptions(string currentText)
         {
+            // Check that we can even do anything useful
             if (_schemaProvider == null || string.IsNullOrWhiteSpace(currentText) || (!currentText.Contains("."))) return Empty;
 
             var array = _cache.GetOrAdd(currentText, GetOptionsImpl);
+
+            // If the only thing in the array is the last identifier before the cursor, then we've got nothing to say
             if (array.Length == 1 && currentText.Substring(currentText.LastIndexOf('.') + 1).Equals(array[0], StringComparison.CurrentCultureIgnoreCase))
                 return Empty;
+
             return array;
         }
 
@@ -43,38 +53,97 @@
         {
             var tokens = new Lexer(currentText).GetTokens().ToArray();
             if (tokens.Length < 2) return Empty;
-            var db = tokens.First().Value;
-            var token = tokens.Reverse().GetEnumerator();
+            var db = tokens[0].Value;
+            int current = tokens.Length - 1;
 
-            token.MoveNext();
+            if (tokens[current].Type != TokenType.Dot && tokens[current].Type != TokenType.Identifier) return Empty;
 
-            if (token.Current.Type != TokenType.Dot && token.Current.Type != TokenType.Identifier) return Empty;
-
+            // Is the user halfway through typing an identifier?
             string partial = string.Empty;
-            if (token.Current.Type == TokenType.Identifier)
+            if (tokens[current].Type == TokenType.Identifier)
             {
-                partial = token.Current.Value.ToString();
-                token.MoveNext();
+                partial = tokens[current].Value.ToString();
+                --current;
             }
 
-            if (token.Current.Type == TokenType.Dot)
+            // Skip over what should be a dot.
+            if (tokens[current].Type == TokenType.Dot)
             {
-                token.MoveNext();
+                --current;
             }
 
-            if (token.Current.Type != TokenType.Identifier)
+            // Is the thing before the dot a method call?
+            if (tokens[current].Type == TokenType.CloseParen)
+            {
+                return GetOptionsForMethodReturnType(tokens, current, false, partial).ToArray();
+            }
+
+            // Now we should be on an identifier
+            if (tokens[current].Type != TokenType.Identifier)
             {
                 return Empty;
             }
 
-            var array = GetOptionsImpl(partial, token, db).ToArray();
+            var array = GetOptionsImpl(partial, tokens[current], db).ToArray();
             if (array.Length == 1 && array[0].Equals(partial, StringComparison.CurrentCultureIgnoreCase)) return Empty;
             return array;
         }
 
-        private IEnumerable<string> GetOptionsImpl(string partial, IEnumerator<Token> token, object db)
+        private IEnumerable<string> GetOptionsForMethodReturnType(Token[] tokens, int current, bool methodChainIncludesOrderBy, string partial)
         {
-            if (token.Current.Value == db)
+            current = Lexer.FindIndexOfOpeningToken(tokens, current, TokenType.OpenParen);
+            if (--current < 0)
+            {
+                return Empty;
+            }
+
+            if (tokens[current].Type != TokenType.Identifier) return Empty;
+
+            if (IsAMethodThatReturnsAQuery(tokens[current].Value.ToString()))
+            {
+                current -= 2;
+                if (tokens[current].Type != TokenType.Identifier)
+                {
+                    return Empty;
+                }
+                var options = QueryOptions(tokens[current].Value.ToString(), methodChainIncludesOrderBy);
+                if (!string.IsNullOrWhiteSpace(partial))
+                {
+                    options = options.Where(s => s.StartsWith(partial, StringComparison.CurrentCultureIgnoreCase));
+                }
+                return options;
+            }
+
+            string methodName = tokens[current].Value.ToString();
+            if (methodName.Equals("join", StringComparison.CurrentCultureIgnoreCase)) return new[] { "On" };
+
+            methodChainIncludesOrderBy = methodChainIncludesOrderBy || methodName.StartsWith("OrderBy", StringComparison.CurrentCultureIgnoreCase);
+
+            --current;
+
+            if (tokens[current].Type == TokenType.Dot)
+            {
+                --current;
+            }
+
+            if (tokens[current].Type == TokenType.CloseParen)
+            {
+                return GetOptionsForMethodReturnType(tokens, current, methodChainIncludesOrderBy, partial);
+            }
+
+            return Empty;
+        }
+
+        private static bool IsAMethodThatReturnsAQuery(string identifier)
+        {
+            return identifier.StartsWith("FindAll", StringComparison.CurrentCultureIgnoreCase)
+                   || identifier.Equals("All", StringComparison.CurrentCultureIgnoreCase)
+                   || identifier.StartsWith("Query", StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        private IEnumerable<string> GetOptionsImpl(string partial, Token token, object db)
+        {
+            if (token.Value == db)
             {
                 return DatabaseOptions()
                     .Select(Prettify)
@@ -82,7 +151,7 @@
                     .OrderBy(s => s);
             }
 
-            return TableOptions(token.Current.Value.ToString())
+            return TableOptions(token.Value.ToString())
                 .Where(s => s.StartsWith(partial, StringComparison.CurrentCultureIgnoreCase))
                 .OrderBy(s => s);
         }
@@ -94,11 +163,54 @@
                 .SingleOrDefault();
 
             if (table == null) yield break;
+
+            yield return "All";
+            yield return "Query";
+
             foreach (var column in _schemaProvider.GetColumns(table).Select(c => Prettify(c.ActualName)))
             {
                 yield return column;
                 yield return "FindBy" + column;
                 yield return "FindAllBy" + column;
+            }
+        }
+
+        private IEnumerable<string> QueryOptions(string tableName, bool includeThenBy)
+        {
+            yield return "Select";
+            yield return "Where";
+            yield return "ReplaceWhere";
+            if (includeThenBy)
+            {
+                yield return "ThenBy";
+                yield return "ThenByDescending";
+            }
+            else
+            {
+                yield return "OrderBy";
+                yield return "OrderByDescending";
+            }
+            yield return "Skip";
+            yield return "Take";
+            yield return "Join";
+
+            Table table = _schemaProvider.GetTables()
+                .Where(t => Prettify(t.ActualName) == Prettify(tableName))
+                .SingleOrDefault();
+
+            if (table == null) yield break;
+            foreach (var column in _schemaProvider.GetColumns(table).Select(c => Prettify(c.ActualName)))
+            {
+                if (includeThenBy)
+                {
+                    yield return "ThenBy" + column;
+                    yield return "ThenBy" + column + "Descending";
+                }
+                else
+                {
+                    yield return "OrderBy" + column;
+                    yield return "OrderBy" + column + "Descending";
+                }
             }
         }
 
@@ -116,6 +228,11 @@
         }
 
         private static string Prettify(string source)
+        {
+            return PrettifiedCache.GetOrAdd(source, PrettifyImpl);
+        }
+
+        private static string PrettifyImpl(string source)
         {
             if (!NonAlphaNumeric.IsMatch(source)) return source;
 

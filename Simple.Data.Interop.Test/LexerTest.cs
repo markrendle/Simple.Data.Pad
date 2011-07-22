@@ -228,5 +228,33 @@ namespace Simple.Data.Interop.Test
                 Assert.False(e.MoveNext());
             }
         }
+
+        [Fact]
+        public void ShouldAccountForNestedParentheses()
+        {
+            var tokens = new[]
+                             {
+                                 new Token(TokenType.Identifier), new Token(TokenType.OpenParen),
+                                 new Token(TokenType.Identifier), new Token(TokenType.OpenParen),
+                                 new Token(TokenType.Identifier), new Token(TokenType.CloseParen),
+                                 new Token(TokenType.CloseParen),
+                             };
+
+            Assert.Equal(1, Lexer.FindIndexOfOpeningToken(tokens, 6, TokenType.OpenParen));
+        }
+
+        [Fact]
+        public void ShouldFindOpeningTokenInsideNested()
+        {
+            var tokens = new[]
+                             {
+                                 new Token(TokenType.Identifier), new Token(TokenType.OpenParen),
+                                 new Token(TokenType.Identifier), new Token(TokenType.OpenParen),
+                                 new Token(TokenType.Identifier), new Token(TokenType.CloseParen),
+                                 new Token(TokenType.CloseParen),
+                             };
+
+            Assert.Equal(3, Lexer.FindIndexOfOpeningToken(tokens, 5, TokenType.OpenParen));
+        }
     }
 }

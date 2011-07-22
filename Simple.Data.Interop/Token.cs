@@ -24,5 +24,10 @@ namespace Simple.Data.Interop
         {
             get { return _tokenType; }
         }
+
+        public bool Is(TokenType type)
+        {
+            return Type == type;
+        }
     }
 }

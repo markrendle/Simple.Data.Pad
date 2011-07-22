@@ -15,7 +15,6 @@
             Assert.True(executor.CompileAndRun(database, out result));
             var dict = result as IDictionary<string, object>;
             Assert.NotNull(dict);
-
         }
     }
 }

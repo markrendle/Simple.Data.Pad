@@ -12,13 +12,14 @@ namespace Simple.Data.Pad
     using System.Timers;
     using System.Windows.Input;
     using System.Windows.Media;
+    using Ado.Schema;
     using Interop;
 
     public class MainViewModel : ViewModelBase
     {
         private readonly ICommand _runCommand;
         private readonly Timer _timer;
-        private AutoCompleter _autoCompleter = new AutoCompleter(null);
+        private AutoCompleter _autoCompleter = new AutoCompleter(null as ISchemaProvider);
 
         public MainViewModel()
         {
@@ -28,7 +29,7 @@ namespace Simple.Data.Pad
             _runCommand = new ActionCommand(RunImpl);
             _timer = new Timer(500) { AutoReset = false };
             _timer.Elapsed += TimerElapsed;
-            Trace.Listeners.Add(new ActionTraceListener(s => TraceOutput += s));
+            Trace.Listeners.Add(new ActionTraceListener(message => TraceOutput += message));
         }
 
         void TimerElapsed(object sender, ElapsedEventArgs e)
@@ -56,7 +57,6 @@ namespace Simple.Data.Pad
                 Properties.Settings.Default.Upgrade();
                 Properties.Settings.Default.Save();
             }
-            QueryText = Properties.Settings.Default.LastQuery;
             _databaseSelectorViewModel.SelectedMethod = _databaseSelectorViewModel.Methods
                 .FirstOrDefault(
                     m =>
@@ -77,7 +77,6 @@ namespace Simple.Data.Pad
 
         private void SaveSettings()
         {
-            Properties.Settings.Default.LastQuery = QueryText;
             Properties.Settings.Default.OpenMethod = _databaseSelectorViewModel.SelectedMethod.Name;
             Properties.Settings.Default.OpenMethodParameterCount =
                 _databaseSelectorViewModel.SelectedMethod.GetParameters().Length;
@@ -173,14 +172,26 @@ namespace Simple.Data.Pad
             }
         }
 
+        public string QueryTextToCursor
+        {
+            get { return QueryText.Substring(0, Math.Min(CursorPosition + 1, QueryText.Length)); }
+        }
+
         public IEnumerable<string> AutoCompleteOptions
         {
             get
             {
-                return QueryText.Length > CursorPosition
-                           ? _autoCompleter.GetOptions(QueryText.Substring(0, CursorPosition + 1))
-                           : Enumerable.Empty<string>();
+                if (QueryText.Length >= CursorPosition)
+                {
+                    return _autoCompleter.GetOptions(QueryTextToCursor);
+                }
+                return Enumerable.Empty<string>();
             }
+        }
+
+        public void ForceAutoCompleteOptionsUpdate()
+        {
+            RaisePropertyChanged("AutoCompleteOptions");
         }
 
         void RunImpl()

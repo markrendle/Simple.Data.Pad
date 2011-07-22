@@ -80,5 +80,29 @@ namespace Simple.Data.Interop
             _strings.Add(key, value.Substring(1, value.Length - 2));
             return key;
         }
+
+        public static int FindIndexOfOpeningToken(Token[] tokens, int startIndex, TokenType openingType)
+        {
+            var closingType = tokens[startIndex].Type;
+            int nestCount = 0;
+
+            for (int i = startIndex; i >= 0; i--)
+            {
+                if (tokens[i].Type == closingType)
+                {
+                    ++nestCount;
+                }
+                else if (tokens[i].Type == openingType)
+                {
+                    --nestCount;
+                }
+                if (nestCount == 0)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
     }
 }

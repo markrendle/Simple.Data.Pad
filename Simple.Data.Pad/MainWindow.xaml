@@ -1,67 +1,85 @@
 ﻿<Window x:Class="Simple.Data.Pad.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="{Binding WindowTitle}" Height="350" Width="525"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:pad="clr-namespace:Simple.Data.Pad"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" mc:Ignorable="d"
-        KeyUp="MainWindowKeyUp">
+        Height="480"
+        Width="640"
+        KeyUp="MainWindowKeyUp"
+        Title="{Binding WindowTitle}"
+        mc:Ignorable="d"
+        Icon="/Simple.Data.Pad;component/Images/Icon.ico">
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
     </Window.Resources>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0">
-                <pad:DatabaseSelector DataContext="{Binding DatabaseSelectorViewModel}" Height="32"/>
-                <StackPanel Orientation="Horizontal">
-                    <Button Command="{Binding Run}" Margin="2" Padding="8 2">Run</Button>
-                </StackPanel>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <GroupBox Header="Connection">
+                <pad:DatabaseSelector Height="40"
+                                      DataContext="{Binding DatabaseSelectorViewModel}" />
+            </GroupBox>
+            <StackPanel Orientation="Horizontal">
+                <Button Margin="2"
+                        Padding="8 2"
+                        Command="{Binding Run}">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="Images/database_go.png" />
+                        <TextBlock Margin="4">Run</TextBlock>
+                    </StackPanel>
+                </Button>
             </StackPanel>
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="150"/>
-                </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0"
-                         x:Name="QueryTextBox"
-                         FontFamily="Consolas,Lucida Console,Courier New"
-                         AcceptsReturn="True"
-                         AcceptsTab="True"
-                         VerticalAlignment="Stretch"
-                         Text="{Binding QueryText, UpdateSourceTrigger=PropertyChanged}"
-                         SelectionChanged="TextBoxSelectionChanged"
-                         TextChanged="QueryTextBoxTextChanged"/>
-            </Grid>
-            <GridSplitter Grid.Row="2" Height="4"/>
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <TextBox x:Name="QueryTextBox"
+                     Margin="4"
+                     AcceptsReturn="True"
+                     AcceptsTab="True"
+                     FontFamily="Consolas,Lucida Console,Courier New"
+                     Text="{Binding QueryText, UpdateSourceTrigger=PropertyChanged}"
+                     TextChanged="QueryTextBoxTextChanged"
+                     SelectionChanged="QueryTextBoxSelectionChanged"
+                     VerticalAlignment="Stretch" />
+        </Grid>
+        <GridSplitter Grid.Row="2"
+                      Height="4" />
         <TabControl Grid.Row="3"
+                    Margin="4"
                     TabStripPlacement="Bottom">
             <TabItem Header="Results">
-                <Grid>
-                    <DataGrid ItemsSource="{Binding Data}"
-                              AutoGenerateColumns="True"
+                <Grid Margin="2">
+                    <DataGrid AutoGenerateColumns="True"
                               HorizontalGridLinesBrush="LightGray"
+                              ItemsSource="{Binding Data}"
                               VerticalGridLinesBrush="LightGray"
-                              Visibility="{Binding DataAvailable, Converter={StaticResource ResourceKey=BoolToVis}}"/>
+                              Visibility="{Binding DataAvailable, Converter={StaticResource ResourceKey=BoolToVis}}" />
                     <TextBlock Grid.Row="3"
                                FontFamily="Consolas,Lucida Console,Courier New"
-                               Text="{Binding ResultText}"/>
+                               Text="{Binding ResultText}" />
                 </Grid>
             </TabItem>
             <TabItem Header="Trace">
-                <TextBlock Text="{Binding TraceOutput}"/>
+                <TextBox Text="{Binding TraceOutput}"
+                         FontFamily="Consolas,Lucida Console,Courier New"
+                         TextWrapping="Wrap"/>
             </TabItem>
         </TabControl>
-        <Popup x:Name="AutoCompletePopup" PlacementTarget="{Binding ElementName=QueryTextBox}" Placement="Relative" AllowsTransparency="True">
-            <Border BorderThickness="0.1" Margin="0 0 8 8">
+        <Popup x:Name="AutoCompletePopup"
+               AllowsTransparency="True"
+               Placement="Relative"
+               PlacementTarget="{Binding ElementName=QueryTextBox}"
+               MinWidth="160"
+               MinHeight="40">
+            <Border Margin="0 0 8 8"
+                    BorderThickness="0.1">
                 <ListBox x:Name="AutoCompleteListBox"
-                         MinWidth="160"
-                         MinHeight="40"
                          FontFamily="Consolas,Lucida Console,Courier New"
                          ItemsSource="{Binding AutoCompleteOptions}"
                          MouseUp="ListBoxMouseUp"
@@ -71,13 +89,17 @@
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListBoxItem">
-                                        <Border Name="Border" Padding="2" SnapsToDevicePixels="true">
+                                        <Border Padding="2"
+                                                Name="Border"
+                                                SnapsToDevicePixels="true">
                                             <ContentPresenter />
                                         </Border>
                                         <ControlTemplate.Triggers>
-                                            <Trigger Property="IsSelected" Value="true">
-                                                <Setter TargetName="Border" Property="Background"
-                                            Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                                            <Trigger Property="IsSelected"
+                                                     Value="true">
+                                                <Setter Property="Background"
+                                                        TargetName="Border"
+                                                        Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                                             </Trigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
