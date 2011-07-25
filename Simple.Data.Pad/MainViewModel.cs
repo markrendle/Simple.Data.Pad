@@ -181,7 +181,7 @@ namespace Simple.Data.Pad
         {
             get
             {
-                if (QueryText.Length >= CursorPosition)
+                if ((!string.IsNullOrWhiteSpace(QueryText)) && QueryText.Length >= CursorPosition)
                 {
                     return _autoCompleter.GetOptions(QueryTextToCursor);
                 }

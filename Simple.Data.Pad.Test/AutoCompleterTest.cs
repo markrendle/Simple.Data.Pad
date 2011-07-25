@@ -118,12 +118,28 @@ namespace Simple.Data.Pad.Test
         }
 
         [Fact]
-        public void ShouldReturnColumnsWithColonsForNakedFindByWithANamedParameter()
+        public void ShouldReturnColumnsWithColonsForNakedFindByExcludingExistingNamedParameter()
         {
             var target = CreateTarget();
             var actual = target.GetOptions("db.Test.FindBy(Id: 1, ").ToArray();
-            Assert.Contains("Id:", actual);
+            Assert.DoesNotContain("Id:", actual);
             Assert.Contains("Name:", actual);
+        }
+
+        [Fact]
+        public void ShouldReturnEmptyForNakedFindByWhenInValuePart()
+        {
+            var target = CreateTarget();
+            var actual = target.GetOptions("db.Test.FindBy(Id: 1").ToArray();
+            Assert.Empty(actual);
+        }
+
+        [Fact]
+        public void ShouldReturnEmptyForNakedFindByWhenJustAfterNamedParameter()
+        {
+            var target = CreateTarget();
+            var actual = target.GetOptions("db.Test.FindBy(Id:").ToArray();
+            Assert.Empty(actual);
         }
 
         private static IEnumerable<string> ExpectedQueryMethods(bool includeThenBy, params string[] columns)

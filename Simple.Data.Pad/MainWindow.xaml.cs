@@ -148,15 +148,18 @@ namespace Simple.Data.Pad
             SelectAutoCompleteText();
         }
 
+        private static readonly HashSet<char> AutoCompleteTriggers =
+            new HashSet<char> {'.', ',', ' ', '('};
+
         private void SelectAutoCompleteText(string andAppend = "")
         {
             var selected = AutoCompleteListBox.SelectedItem;
-            while (QueryTextBox.SelectedText.FirstOrDefault() != '.')
+            while (!AutoCompleteTriggers.Contains(QueryTextBox.SelectedText.FirstOrDefault()))
             {
                 QueryTextBox.SelectionStart -= 1;
                 QueryTextBox.SelectionLength += 1;
             }
-            QueryTextBox.SelectedText = "." + selected + andAppend;
+            QueryTextBox.SelectedText = string.Concat(QueryTextBox.SelectedText[0], selected, andAppend);
             QueryTextBox.SelectionStart += QueryTextBox.SelectionLength;
             QueryTextBox.SelectionLength = 0;
             QueryTextBox.CaretIndex = QueryTextBox.SelectionStart;
