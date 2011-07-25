@@ -108,6 +108,24 @@ namespace Simple.Data.Pad.Test
             Assert.Equal(6, actual.Length);
         }
 
+        [Fact]
+        public void ShouldReturnColumnsWithColonsForNakedFindBy()
+        {
+            var target = CreateTarget();
+            var actual = target.GetOptions("db.Test.FindBy(").ToArray();
+            Assert.Contains("Id:", actual);
+            Assert.Contains("Name:", actual);
+        }
+
+        [Fact]
+        public void ShouldReturnColumnsWithColonsForNakedFindByWithANamedParameter()
+        {
+            var target = CreateTarget();
+            var actual = target.GetOptions("db.Test.FindBy(Id: 1, ").ToArray();
+            Assert.Contains("Id:", actual);
+            Assert.Contains("Name:", actual);
+        }
+
         private static IEnumerable<string> ExpectedQueryMethods(bool includeThenBy, params string[] columns)
         {
             yield return "Select";

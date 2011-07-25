@@ -56,6 +56,16 @@
             var db = tokens[0].Value;
             int current = tokens.Length - 1;
 
+            int openMethodIndex;
+            if (IsInFindByCall(current, tokens, out openMethodIndex))
+            {
+                Table table = _schemaProvider.GetTables()
+                    .Where(t => Prettify(t.ActualName) == Prettify(tokens[openMethodIndex - 2].Value.ToString()))
+                    .SingleOrDefault();
+                if (table == null) return Empty;
+                return _schemaProvider.GetColumns(table).Select(c => Prettify(c.ActualName) + ":").ToArray();
+            }
+
             if (tokens[current].Type != TokenType.Dot && tokens[current].Type != TokenType.Identifier) return Empty;
 
             // Is the user halfway through typing an identifier?
@@ -87,6 +97,50 @@
             var array = GetOptionsImpl(partial, tokens[current], db).ToArray();
             if (array.Length == 1 && array[0].Equals(partial, StringComparison.CurrentCultureIgnoreCase)) return Empty;
             return array;
+        }
+
+        private static int FindUnmatchedOpenParen(Token[] tokens, int current)
+        {
+            int closeParenCount = 0;
+            for (int index = current; index > 1; index--)
+            {
+                if (tokens[index].Type == TokenType.CloseParen)
+                {
+                    ++closeParenCount;
+                }
+                else if (tokens[index].Type == TokenType.OpenParen)
+                {
+                    --closeParenCount;
+                    if (closeParenCount < 1)
+                    {
+                        return index;
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        private static bool IsInFindByCall(int current, Token[] tokens, out int openMethodIndex)
+        {
+            int openCallIndex = FindUnmatchedOpenParen(tokens, current);
+            if (openCallIndex > 0)
+            {
+                if (IsFindByCall(tokens[openCallIndex], tokens[openCallIndex - 1]))
+                {
+                    openMethodIndex = openCallIndex - 1;
+                    return true;
+                }
+            }
+            openMethodIndex = -1;
+            return false;
+        }
+
+        private static bool IsFindByCall(Token current, Token previous)
+        {
+            return current.Type == TokenType.OpenParen
+                   && previous.Type == TokenType.Identifier
+                   && previous.Value.ToString().Equals("FindBy", StringComparison.CurrentCultureIgnoreCase);
         }
 
         private IEnumerable<string> GetOptionsForMethodReturnType(Token[] tokens, int current, bool methodChainIncludesOrderBy, string partial)
