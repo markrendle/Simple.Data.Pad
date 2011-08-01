@@ -42,6 +42,15 @@ namespace Simple.Data.Pad.Test
         }
 
         [Fact]
+        public void ShouldReturnFindByListForPluralizedTable()
+        {
+            var target = CreateTarget();
+            var actual = target.GetOptions("db.Tests.").ToArray();
+            Assert.Contains("FindById", actual);
+            Assert.Contains("FindByName", actual);
+        }
+
+        [Fact]
         public void ShouldReturnFindAllByListForTable()
         {
             var target = CreateTarget();

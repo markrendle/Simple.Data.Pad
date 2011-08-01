@@ -12,11 +12,10 @@
 
     public class AutoCompleter
     {
-        private static readonly Regex NonAlphaNumeric = new Regex("[^0-9a-zA-Z]+");
         private static readonly string[] Empty = new string[0];
         private readonly ISchemaProvider _schemaProvider;
         private readonly ConcurrentDictionary<string,string[]> _cache = new ConcurrentDictionary<string, string[]>();
-        private static readonly ConcurrentDictionary<string, string> PrettifiedCache = new ConcurrentDictionary<string, string>();
+        private static readonly Prettifier Prettifier = new Prettifier();
 
         public AutoCompleter(DataStrategy database)
         {
@@ -101,10 +100,10 @@
         {
             string tableName = tokens[openMethodIndex - 2].Value.ToString();
             Table table = _schemaProvider.GetTables()
-                .Where(t => Prettify(t.ActualName) == Prettify(tableName))
+                .Where(t => Prettifier.Prettify(t.ActualName) == Prettifier.Prettify(tableName))
                 .SingleOrDefault();
             if (table == null) return Empty;
-            var columnQuery = _schemaProvider.GetColumns(table).Select(c => Prettify(c.ActualName) + ":");
+            var columnQuery = _schemaProvider.GetColumns(table).Select(c => Prettifier.Prettify(c.ActualName) + ":");
 
             if (currentIndex - openMethodIndex > 2)
             {
@@ -233,7 +232,7 @@
             if (token.Value == db)
             {
                 return DatabaseOptions()
-                    .Select(Prettify)
+                    .Select(Prettifier.Prettify)
                     .Where(s => s.StartsWith(partial, StringComparison.CurrentCultureIgnoreCase))
                     .OrderBy(s => s);
             }
@@ -246,7 +245,7 @@
         private IEnumerable<string> TableOptions(string tableName)
         {
             Table table = _schemaProvider.GetTables()
-                .Where(t => Prettify(t.ActualName) == Prettify(tableName))
+                .Where(t => Prettifier.Prettify(t.ActualName) == Prettifier.Prettify(tableName))
                 .SingleOrDefault();
 
             if (table == null) yield break;
@@ -256,7 +255,7 @@
             yield return "FindBy";
             yield return "FindAllBy";
 
-            foreach (var column in _schemaProvider.GetColumns(table).Select(c => Prettify(c.ActualName)))
+            foreach (var column in _schemaProvider.GetColumns(table).Select(c => Prettifier.Prettify(c.ActualName)))
             {
                 yield return column;
                 yield return "FindBy" + column;
@@ -284,11 +283,11 @@
             yield return "Join";
 
             Table table = _schemaProvider.GetTables()
-                .Where(t => Prettify(t.ActualName) == Prettify(tableName))
+                .Where(t => Prettifier.Prettify(t.ActualName) == Prettifier.Prettify(tableName))
                 .SingleOrDefault();
 
             if (table == null) yield break;
-            foreach (var column in _schemaProvider.GetColumns(table).Select(c => Prettify(c.ActualName)))
+            foreach (var column in _schemaProvider.GetColumns(table).Select(c => Prettifier.Prettify(c.ActualName)))
             {
                 if (includeThenBy)
                 {
@@ -316,23 +315,5 @@
             }
         }
 
-        private static string Prettify(string source)
-        {
-            return PrettifiedCache.GetOrAdd(source, PrettifyImpl);
-        }
-
-        private static string PrettifyImpl(string source)
-        {
-            if (!NonAlphaNumeric.IsMatch(source)) return source;
-
-            var builder = new StringBuilder();
-            foreach (var word in NonAlphaNumeric.Replace(source, " ").Split(' '))
-            {
-                builder.Append(char.ToUpper(word[0]));
-                builder.Append(word.Substring(1).ToLower());
-            }
-
-            return builder.ToString();
-        }
     }
 }
