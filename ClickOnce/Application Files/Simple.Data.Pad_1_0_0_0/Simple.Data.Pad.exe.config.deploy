@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+    <configSections>
+        <sectionGroup name="userSettings" type="System.Configuration.UserSettingsGroup, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" >
+            <section name="Simple.Data.Pad.Properties.Settings" type="System.Configuration.ClientSettingsSection, System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" allowExeDefinition="MachineToLocalUser" requirePermission="false" />
+        </sectionGroup>
+    </configSections>
+    <userSettings>
+        <Simple.Data.Pad.Properties.Settings>
+            <setting name="OpenMethod" serializeAs="String">
+                <value>OpenConnection</value>
+            </setting>
+            <setting name="OpenMethodParameterCount" serializeAs="String">
+                <value>1</value>
+            </setting>
+            <setting name="OpenMethodParameter1" serializeAs="String">
+                <value>ConnectionString</value>
+            </setting>
+            <setting name="OpenMethodParameter2" serializeAs="String">
+                <value />
+            </setting>
+            <setting name="UpgradeRequired" serializeAs="String">
+                <value>True</value>
+            </setting>
+            <setting name="LastQuery" serializeAs="String">
+                <value />
+            </setting>
+        </Simple.Data.Pad.Properties.Settings>
+    </userSettings>
+</configuration>
