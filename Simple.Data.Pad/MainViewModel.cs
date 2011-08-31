@@ -252,6 +252,8 @@ namespace Simple.Data.Pad
 
         private static object FormatQuery(SimpleQuery simpleQuery)
         {
+            bool hasCount = simpleQuery.Clauses.OfType<WithCountClause>().Any();
+
             var list = simpleQuery.ToList();
             if (list.Count == 0) return "No matching records.";
 
