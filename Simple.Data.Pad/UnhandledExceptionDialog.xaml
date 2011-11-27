@@ -1,0 +1,24 @@
+﻿<Window x:Class="Simple.Data.Pad.UnhandledExceptionDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="UnhandledExceptionDialog" Height="300" Width="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TextBlock TextWrapping="Wrap" Margin="4">An error happened. It is unclear whether this is your fault or mine.</TextBlock>
+        <TextBox Grid.Row="1"
+                 AcceptsReturn="True"
+                 x:Name="ExceptionTextBox"
+                 IsReadOnly="True"
+                 IsReadOnlyCaretVisible="True"/>
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button x:Name="MyFaultButton" Margin="2" Click="MyFaultButtonClick">My fault. Carry on.</Button>
+            <Button x:Name="YourFaultButton" Margin="2" Click="YourFaultButtonClick">Your fault! Rage quit!</Button>
+        </StackPanel>
+    </Grid>
+</Window>

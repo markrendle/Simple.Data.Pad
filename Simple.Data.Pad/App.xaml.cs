@@ -20,8 +20,8 @@ namespace Simple.Data.Pad
 
         void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            var unhandledExceptionDialog = new UnhandledExceptionDialog(e);
-            unhandledExceptionDialog.ShowDialog();
+            var unhandledExceptionDialog = new UnhandledExceptionDialog(e.Exception);
+            e.Handled = unhandledExceptionDialog.ShowDialog().GetValueOrDefault();
         }
     }
 }
