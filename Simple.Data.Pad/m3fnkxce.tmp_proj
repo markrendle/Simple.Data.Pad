@@ -74,36 +74,8 @@
     <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Simple.Data, Version=0.16.2.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Simple.Data.Core.0.16.2.1\lib\net40\Simple.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="Simple.Data.Ado, Version=0.16.2.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Simple.Data.Ado.0.16.2.1\lib\net40\Simple.Data.Ado.dll</HintPath>
-    </Reference>
-    <Reference Include="Simple.Data.SqlServer, Version=0.16.2.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Simple.Data.SqlServer.0.16.2.1\lib\net40\Simple.Data.SqlServer.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.Entity.Design" />
-    <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
     <Compile Include="ActionCommand.cs" />
     <Compile Include="AutoCompleter.cs" />
     <Compile Include="DatabaseSelector.xaml.cs">
@@ -113,18 +85,7 @@
     <Compile Include="ActionTraceListener.cs" />
     <Compile Include="MethodInfoToStringConverter.cs" />
     <Compile Include="Prettifier.cs" />
-    <Compile Include="UnhandledExceptionDialog.xaml.cs">
-      <DependentUpon>UnhandledExceptionDialog.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ViewModelBase.cs" />
-    <Page Include="DatabaseSelector.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -135,10 +96,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="UnhandledExceptionDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -173,10 +130,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\database_go.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\Icon.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
@@ -208,4 +163,29 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\Microsoft.CSharp.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\mscorlib.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\PresentationCore.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\PresentationFramework.dll" />
+    <ReferencePath Include="D:\Code\Simple.Data.Pad\packages\Simple.Data.Ado.0.9.6.2\lib\net40\Simple.Data.Ado.dll" />
+    <ReferencePath Include="D:\Code\Simple.Data.Pad\packages\Simple.Data.Core.0.9.6.2\lib\net40\Simple.Data.dll" />
+    <ReferencePath Include="D:\Code\Simple.Data.Pad\Simple.Data.Interop\bin\AutoTest.Net\Simple.Data.Interop.dll" />
+    <ReferencePath Include="D:\Code\Simple.Data.Pad\packages\Simple.Data.SqlServer.0.9.6.2\lib\net40\Simple.Data.SqlServer.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Core.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Data.DataSetExtensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Data.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Data.Entity.Design.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Xaml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Xml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Xml.Linq.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\WindowsBase.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="D:\Code\Simple.Data.Pad\Simple.Data.Pad\bin\AutoTest.Net\_tmpIntermediateAT\DatabaseSelector.g.cs" />
+    <Compile Include="D:\Code\Simple.Data.Pad\Simple.Data.Pad\bin\AutoTest.Net\_tmpIntermediateAT\MainWindow.g.cs" />
+    <Compile Include="D:\Code\Simple.Data.Pad\Simple.Data.Pad\bin\AutoTest.Net\_tmpIntermediateAT\App.g.cs" />
+    <Compile Include="D:\Code\Simple.Data.Pad\Simple.Data.Pad\bin\AutoTest.Net\_tmpIntermediateAT\GeneratedInternalTypeHelper.g.cs" />
+  </ItemGroup>
 </Project>

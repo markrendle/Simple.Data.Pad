@@ -231,5 +231,10 @@ namespace Simple.Data.Pad.Test
         {
             return "@" + baseName;
         }
+
+        public string GetDefaultSchema()
+        {
+            return "dbo";
+        }
     }
 }

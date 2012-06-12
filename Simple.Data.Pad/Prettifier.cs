@@ -31,7 +31,7 @@ namespace Simple.Data.Pad
                                           ? parts[parts.Length - 1]
                                           : _pluralization.Singularize(parts[parts.Length - 1]);
 
-            return string.Join("", parts.Select(ToPascalCase));
+            return string.Join("", parts.Where(p => !string.IsNullOrWhiteSpace(p)).Select(ToPascalCase));
         }
 
         public string PluralizeAndPrettify(string source)
