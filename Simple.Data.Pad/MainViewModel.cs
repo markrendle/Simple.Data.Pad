@@ -197,8 +197,15 @@ namespace Simple.Data.Pad
         void RunImpl()
         {
             SaveSettings();
-            TraceOutput = string.Empty;
             
+            if (_queryText == null)
+            {
+                TraceOutput = "Please Write a query first and then hit run";
+                return;
+            }
+            
+            TraceOutput = string.Empty;
+
             var database = CreateDatabase();
             var executor = new QueryExecutor(_queryText);
             object result;

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 
 namespace Simple.Data.Pad
@@ -14,6 +16,9 @@ namespace Simple.Data.Pad
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            //Only English Culture is supported
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             base.OnStartup(e);
         }
